@@ -10,9 +10,13 @@ use NetPacket::TCP;
 use POSIX qw(setsid);
 use warnings;
 
+# Ensure prev.txt file exists
 system("touch /tmp/prev.txt");
+# Get current set of close wait connections in sorted order
 system("netstat -tulnap | grep CLOSE_WAIT | sed -e 's/::ffff://g' | awk '{print \$4,\$5}' | sed 's/:/ /g' | sort > /tmp/curr.txt");
+# Log common lines into a file
 system("comm -12 /tmp/prev.txt /tmp/curr.txt > /tmp/killed.txt")
+# Common lines into the connections wait variable
 open(my $CONNECTIONS_WAIT, "comm -12 /tmp/prev.txt /tmp/curr.txt |") || die "Failed: $!\n";
 
 while ( my $conn = <$CONNECTIONS_WAIT> )
@@ -31,5 +35,7 @@ while ( my $conn = <$CONNECTIONS_WAIT> )
     $packet->send;
 }
 
+# empty prev.txt file. Redundant
 system("echo '' > /tmp/prev.txt");
+# record new set of close wait connections
 system("netstat -tulnap | grep CLOSE_WAIT | sed -e 's/::ffff://g' | awk '{print \$4,\$5}' | sed 's/:/ /g' | sort > /tmp/prev.txt");
