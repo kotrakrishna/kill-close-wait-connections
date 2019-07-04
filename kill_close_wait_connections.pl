@@ -10,7 +10,9 @@ use NetPacket::TCP;
 use POSIX qw(setsid);
 use warnings;
 
-open(my $CONNECTIONS_WAIT, "netstat -tulnap | grep CLOSE_WAIT | sed -e 's/::ffff://g' | awk '{print \$4,\$5}' | sed 's/:/ /g' |") || die "Failed: $!\n";
+system("touch /tmp/prev.txt");
+system("netstat -tulnap | grep CLOSE_WAIT | sed -e 's/::ffff://g' | awk '{print \$4,\$5}' | sed 's/:/ /g' | sort > /tmp/curr.txt");
+open(my $CONNECTIONS_WAIT, "comm -12 /tmp/prev.txt /tmp/curr.txt |") || die "Failed: $!\n";
 
 while ( my $conn = <$CONNECTIONS_WAIT> )
 {
@@ -27,3 +29,6 @@ while ( my $conn = <$CONNECTIONS_WAIT> )
        });
     $packet->send;
 }
+
+system("echo '' > /tmp/prev.txt");
+system("netstat -tulnap | grep CLOSE_WAIT | sed -e 's/::ffff://g' | awk '{print \$4,\$5}' | sed 's/:/ /g' | sort > /tmp/prev.txt");
