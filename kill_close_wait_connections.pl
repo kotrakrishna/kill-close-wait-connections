@@ -12,6 +12,7 @@ use warnings;
 
 system("touch /tmp/prev.txt");
 system("netstat -tulnap | grep CLOSE_WAIT | sed -e 's/::ffff://g' | awk '{print \$4,\$5}' | sed 's/:/ /g' | sort > /tmp/curr.txt");
+system("comm -12 /tmp/prev.txt /tmp/curr.txt > /tmp/killed.txt")
 open(my $CONNECTIONS_WAIT, "comm -12 /tmp/prev.txt /tmp/curr.txt |") || die "Failed: $!\n";
 
 while ( my $conn = <$CONNECTIONS_WAIT> )
